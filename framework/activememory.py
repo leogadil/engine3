@@ -10,37 +10,53 @@
             like tasks, events, and other data.
         
 """
+import sqlite3
+import sys
+from traceback import format_exc
+
 import crud
+from logger import get_logger
+
+lgr = get_logger(__name__)
 
 class activememory():
 
     def __init__(self) -> None:
-        super().__init__("./activememory/shortterm_memory.db")
         self.task = None
 
     def init_task(self):
-        self.task = taskactivememory('./activememory/task_memory.db')
+        self.task = taskactivememory('activememory/task_memory.db')
 
 
 class taskactivememory(crud.database):
 
     def __init__(self, db_path: str) -> None:
         super().__init__(db_path)
+        self.create_task_memory()
 
     def create_task_memory(self) -> None:
+        self.connect()
         """
         create a database table for tasks queue
         """
 
         task_memory_query = '''
-            CREATE TABLER IF NOT EXIST task_queue(
+            CREATE TABLE IF NOT EXISTS task_queue(
                 id STRING PRIMARY KEY,
                 query STRING,
                 status STRING
             )
         '''
 
-        self.execute(task_memory_query)
+        try:
+            self.cursor.execute(task_memory_query)
+            self.conn.commit()
+            self.close()
+        except sqlite3.OperationalError as e:
+            lgr.error("Error creating task_queue table: {}".format(e))
+            # traceback = format_exc()
+            # lgr.error("{}".format(traceback))
+            sys.exit(1)
 
     def push_task(self, _query) -> None:
         self.connect()
@@ -49,9 +65,12 @@ class taskactivememory(crud.database):
             INSERT INTO task_queue(id, query, status) values(?,?,?)
         '''
 
-        self.cursor.execute(push_task_query, (_query, 'WAITING'))
-        self.conn.commit()
-        self.close()
+        try:
+            self.cursor.execute(push_task_query, (_query, 'WAITING'))
+            self.conn.commit()
+            self.close()
+        except sqlite3.OperationalError as e:
+            lgr.error("Error pushing task to task_queue: {}".format(e))
 
     def get_task(self, _id) -> list:
         self.connect()
@@ -59,11 +78,14 @@ class taskactivememory(crud.database):
         get_task_query = '''
             SELECT COUNT(*) FROM task_queue WHERE id=?
         '''
-
-        r = self.cursor.execute(get_task_query,(_id))
-        self.conn.commit()
-        self.close()
-        return r
+        try:
+            r = self.cursor.execute(get_task_query,(_id))
+            self.conn.commit()
+            self.close()
+            return r
+        except sqlite3.OperationalError as e:
+            lgr.error("Error getting task from task_queue: {}".format(e))
+            return []
         
 
     def del_task(self, _id) -> None:
@@ -73,9 +95,12 @@ class taskactivememory(crud.database):
             DELETE FROM task_queue WHERE id=?
         '''
 
-        self.cursor.execute(del_task_query, (_id))
-        self.conn.commit()
-        self.close()
+        try:
+            self.cursor.execute(del_task_query, (_id))
+            self.conn.commit()
+            self.close()
+        except sqlite3.OperationalError as e:
+            lgr.error("Error deleting task from task_queue: {}".format(e))
 
     def next_task(self) -> dict:
         self.connect()
@@ -84,9 +109,13 @@ class taskactivememory(crud.database):
             SELECT * FROM task_queue WHERE status=?
         '''
 
-        r = self.cursor.execute(next_task_query, ("WAITING"))
-        self.close()
-        return r[0]
+        try:
+            r = self.cursor.execute(next_task_query, ("WAITING"))
+            self.close()
+            return r[0]
+        except sqlite3.OperationalError as e:
+            lgr.error("Error getting next task from task_queue: {}".format(e))
+            return {}
 
     def all_tasks(self) -> list:
         self.connect()
@@ -94,8 +123,12 @@ class taskactivememory(crud.database):
         get_all_tasks = '''
             SELECT * FROM task_queue
         '''
+        try:
+            r = self.cursor.execute(get_all_tasks)
+            self.close()
+            return r
+        except sqlite3.OperationalError as e:
+            lgr.error("Error getting all tasks from task_queue: {}".format(e))
+            return []
 
-        r = self.cursor.execute(get_all_tasks)
-        self.close()
-        return r
 
