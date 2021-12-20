@@ -13,17 +13,24 @@
 
 """
 
+from logger import get_logger
+import os
+from pathlib import Path
 import sqlite3
+
+lgr = get_logger(__name__)
 
 class database:
 
     def __init__(self, db_path: str) -> None:
-        self.db_path = db_path
-        
-        self.cursor = self.conn.cursor()
+        self.db_path = os.path.join(Path(__file__).parent, db_path)
 
     def connect(self):
-        self.conn = sqlite3.connect(self.db_path)
+        try:
+            self.conn = sqlite3.connect(self.db_path)
+            self.cursor = self.conn.cursor()
+        except sqlite3.OperationalError as e:
+            lgr.error("Error connecting to database: {}".format(e))
 
     def close(self):
         self.conn.close()
