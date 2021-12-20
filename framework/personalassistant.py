@@ -21,7 +21,7 @@ version = "0.0.1"
 import abc
 from logger import get_logger
 from time import sleep
-import activememory
+import activememory as am
 
 lgr = get_logger(__name__)
 
@@ -46,10 +46,22 @@ class engine:
         lgr.warning("No External Preparation Steps Found.")
 
     def initialize(self):
+        """
+        Initialize the engine
+        Load Everything that is part of the core components
+        """
         self.prepare()
+
+        self.stm = am.activememory()
+        self.stm.init_task()
+
         self.running = True
 
     def run(self) -> None:
+        """
+        Load Everthing that is not part of the core components
+        Modules, Plugins, Commands, etc.
+        """
         lgr.info("Loading initiatives...")
         self.main_thread()
     
@@ -57,7 +69,6 @@ class engine:
         try:
             lgr.info(f"{self.name} is ready to serve you.")
             while self.running:
-                # do the main loop here
                 sleep(.1)
         except KeyboardInterrupt:
             self.running = False
