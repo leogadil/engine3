@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+
+version = "0.0.1"
+
 """
     Personal Assistant Engine
     ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -33,6 +36,7 @@ class engine:
         self.running = False
         self.num_worker = 1
         self.name = "Personal Assistant"
+        self.version = version
 
         if child is not None:
             self.child = child
