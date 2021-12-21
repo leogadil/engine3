@@ -75,6 +75,7 @@ class engine:
     def main_thread(self) -> None:
         try:
             lgr.info(f"{self.name} is ready to serve you.")
+            self.module_manager.start()
             while self.running:
                 sleep(.1)
         except KeyboardInterrupt:
