@@ -19,9 +19,11 @@ version = "0.0.1"
 """
 
 import abc
-from logger import get_logger
 from time import sleep
+
 import activememory as am
+import mloader as mload
+from logger import get_logger
 
 lgr = get_logger(__name__)
 
@@ -52,6 +54,7 @@ class engine:
         """
         self.prepare()
 
+        # load active memory
         self.stm = am.activememory()
         self.stm.init_task()
 
@@ -63,6 +66,10 @@ class engine:
         Modules, Plugins, Commands, etc.
         """
         lgr.info("Loading initiatives...")
+
+        # load modules
+        self.module_manager = mload.loader('modules').load()
+
         self.main_thread()
     
     def main_thread(self) -> None:
