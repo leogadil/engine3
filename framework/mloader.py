@@ -22,15 +22,23 @@ class loader:
                 mm = SourceFileLoader(name, path).load_module()
                 try:
                     main = getattr(mm, name)
-                    self.modules[name] = main()
+                    self.modules[name] = main
                 except AttributeError as e:
                     lgr.warning(f"Module {name} can't be found. {e}")
 
+            lgr.info(f"{len(self.modules)} module(s) loaded.")
+
         return self
+
+    def start(self):
+        if self.modules:
+            for name in self.modules.keys():
+                self.modules[name] = self.modules[name]()
 
     def get_modules(self) -> None:
         self.files = []
-        for root, dirs, files in os.walk(self.path):
+        self.modules = {}
+        for root, _, files in os.walk(self.path):
             for file in files:
                 if file.endswith(".py"):
                     self.files.append([os.path.join(root, file), file.split(".")[0]])
