@@ -10,6 +10,7 @@
             like tasks, events, and other data.
         
 """
+import os
 import sqlite3
 import sys
 from traceback import format_exc
@@ -22,6 +23,13 @@ lgr = get_logger(__name__)
 class activememory():
 
     def __init__(self) -> None:
+        # create active memory subfolder if it does not exist
+
+        folder = 'framework/activememory'
+        if not os.path.exists(folder):
+            lgr.warning(f'Creating folder: {folder}')
+            os.makedirs(folder)
+
         self.task = None
 
     def init_task(self):
