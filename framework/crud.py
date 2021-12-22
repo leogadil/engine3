@@ -24,6 +24,8 @@ class database:
 
     def __init__(self, db_path: str) -> None:
         self.db_path = os.path.join(Path(__file__).parent, db_path)
+        self.connect()
+        self.close()
 
     def connect(self):
         try:
