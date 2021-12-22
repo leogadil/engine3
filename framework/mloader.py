@@ -1,13 +1,28 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""
+    Module loader
+    ~~~~~~~~~~~~~
+    program that loads modules and executes them.
+    It is responsible for the following tasks:
+        - loading modules
+        - executing modules
+        - managing the modules current active memory (short term memory)
+            like tasks, events, and other data.
+"""
+
 
 import os
 from importlib.machinery import SourceFileLoader
 from pathlib import Path
 
 from logger import get_logger
+import crud
 
 lgr = get_logger(__name__)
 
-class loader:
+class loader(crud.database):
 
     def __init__(self, path: str):
         self.path = os.path.join(Path(__file__).parent, path)
@@ -24,9 +39,9 @@ class loader:
                     main = getattr(mm, name)
                     self.modules[name] = main
                 except AttributeError as e:
-                    lgr.warning(f"Module {name} can't be found. {e}")
+                    lgr.warning("Module {} can't be found. {}".format(name, e))
 
-            lgr.info(f"{len(self.modules)} module(s) loaded.")
+            lgr.info("{} module(s) loaded.".format(len(self.modules)))
 
         return self
 
