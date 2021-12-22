@@ -1,3 +1,5 @@
+
+
 # Foobar
 
 Engine 3 is the third iteration of the Samantha Engine. Third iteration because I'm still learning python and I've been applying what I've learned since then. Samantha engine is the core and the framework of what an assistant interface might look like. its design is modular so it's easy to add functionality to the framework.
@@ -32,6 +34,22 @@ if __name__ == '__main__':
     Samantha()
 ```
 
+## Configuration
+Don't forget to add the configuration file where? `framework/config.json`. This is the format.
+
+> **THIS IS VERY IMPORTANT!!! FRAMEWORK WILL NEVER WORK IF CONFIG IS MISSING**
+
+```json
+{
+    "weather": {
+        "key": "openweatherapi_key_here",
+        "units": "metric",
+        "location": "your_default_location"
+    }
+}
+```
+> In the future this will be auto-generated but it still on its early stage.
+
 ## Contributing
 currently, this project is only private and will not accept contributions but please do contact me if you have suggestions, I am open to suggestions.
 
@@ -40,6 +58,9 @@ currently, this project is only private and will not accept contributions but pl
 # this email is very old that's why there's a vlog in it.
 $ print("leogadilvlog@gmail.com")
 ```
+or [Issues](https://github.com/leogadil/engine3/issues)
+
+
 
 ## License
 [MIT](https://github.com/leogadil/engine3/blob/master/LICENSE)
