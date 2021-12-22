@@ -7,7 +7,7 @@ Engine 3 is the third iteration of the Samantha Engine. Third iteration because 
 this is built on Python 3.9+. didn't check if it runs on older version of Python
 
 ```bash
-$ pip install -r requirements.txt
+pip install -r requirements.txt
 ```
 
 ## Usage
