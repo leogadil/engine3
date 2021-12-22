@@ -4,6 +4,8 @@
 
 Engine 3 is the third iteration of the Samantha Engine. Third iteration because I'm still learning python and I've been applying what I've learned since then. Samantha engine is the core and the framework of what an assistant interface might look like. its design is modular so it's easy to add functionality to the framework.
 
+> You can check out my progress on [trello](https://trello.com/b/r9b2P8p1/samantha-engine).
+
 ## Installation
 
 this is built on Python 3.9+. didn't check if it runs on older version of Python
