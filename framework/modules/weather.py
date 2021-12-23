@@ -1,10 +1,10 @@
 
 import http.client
 import json
+import socket
 import sqlite3
-from pprint import pprint
-from time import sleep
 import time
+from time import sleep
 
 from moduleb import mobase
 
@@ -20,9 +20,21 @@ class weather(mobase):
         self.lgr = self.logger(__name__)
         self.create_weather_database()
 
+        self.expiration_time = self.config['weather']['expiration_time']
         self.running = True
 
-        self.run()
+        self.get_latest_weather_if_database_not_lastest()
+
+    @mobase.run_in_thread
+    def run(self, type=None, city=None, timestamp=None):
+
+        if type is None:
+            type = 0 # Get current weather
+
+        if city is None:
+            city = self.config['weather']['location'] # default config city
+
+        self.connect()
 
     def fetch_weather(self, type=None, city=None) -> dict:
 
@@ -38,15 +50,14 @@ class weather(mobase):
         units = "units={}".format(self.config['weather']['units'] or 'metric')
         params = "&".join([key, query, units])
 
-        http_conn.request("GET", "/data/2.5/{}?{}".format(type,params))
+        try:
+            http_conn.request("GET", "/data/2.5/{}?{}".format(type,params))
+        except socket.gaierror as e:
+            self.lgr.error("Error connecting to API: {}".format(e))
         http_res = http_conn.getresponse()
         decoded = json.loads(http_res.read().decode("utf-8"))
 
         return decoded
-
-        # file = open("framework/modules/weather/weather.json", "w")
-        # json.dump(decoded, file, indent=4)
-        # file.close()
 
     def get_current_weather_from_api(self, city=None) -> None:
         try:
@@ -86,14 +97,25 @@ class weather(mobase):
         except Exception as e:
             self.lgr.error("Error fetching current weather: {}".format(e))
 
-    def get_forecast_from_api(self, city=None) -> None:
-        try:
-            res = self.fetch_weather(type='forecast', city=city)
+    def get_forecast_from_api(self, city=None, type=None) -> None:
 
-            if res['cod'] == '429':
+        if type is None:
+            type = 'forecast'
+
+        try:
+            res = self.fetch_weather(type=type, city=city)
+
+            res_cod = str(res['cod'])
+
+            if res_cod == '429':
                 raise Exception('API rate limit exceeded')
-            elif str(res['cod']) != '200':
+            elif res_cod == '404':
+                raise Exception('API is down')
+            elif res_cod == '401':
+                raise Exception("API key is invalid or you don't have permission")
+            elif res_cod != '200':
                 raise Exception('API returned error: {}'.format(res['cod']))
+            
 
             weather_list = res['list']
             city = res['city']
@@ -187,14 +209,14 @@ class weather(mobase):
 
         try:
             result = self.cursor.execute('''
-                SELECT dt FROM weather ORDER BY dt DESC LIMIT 1
+                SELECT dt FROM weather ORDER BY dt LIMIT 1
             ''').fetchone()
             self.close()
 
             if result is None:
                 return True
 
-            if result[0] < int(time.time()):
+            if result[0] + self.expiration_time < int(time.time()):
                 return True
 
             return False
@@ -202,42 +224,12 @@ class weather(mobase):
         except sqlite3.OperationalError as e:
             self.lgr.error("Error checking if latest weather is outdated: {}".format(e))
 
-    def get_closest_weather_data_by_date_from_curret_time(self, _time=None):
-        
-        if _time is None:
-            _time = int(time.time())
-
-        self.connect()
-
-        get_current_data = '''
-            SELECT * FROM weather WHERE dt <= ? ORDER BY dt DESC LIMIT 1
-        '''
-
-        try:
-            result = self.cursor.execute(get_current_data, (_time,)).fetchone()
-            self.close()
-
-            return result
-
-        except sqlite3.OperationalError as e:
-            self.lgr.error("Error getting closest weather data by date from current time: {}".format(e))
-        except Exception as e:
-            self.lgr.error("Error : {}".format(e))
-
-
     @mobase.run_in_thread
     def get_latest_weather_if_database_not_lastest(self) -> None:
-        self.lgr.info("Database is dated: {}".format(self.check_if_latest_weather_is_outdated()))
         while self.running:
             if self.check_if_latest_weather_is_outdated():
-                self.lgr.info("Fetching latest weather data")
+                self.lgr.info("Weather Database is outdated, fetching latest weather")
                 self.get_current_weather_from_api()
-                self.get_forecast_from_api()
+                # self.get_forecast_from_api()
             sleep(15)
-
-    @mobase.run_in_thread
-    def run(self):
-        self.get_latest_weather_if_database_not_lastest()
-        sleep(.1) # put a small delay to stop getting an error
-        # get_weather = self.get_closest_weather_data_by_date_from_curret_time()
         
