@@ -7,6 +7,7 @@ from idgen import genid
 
 import crud
 from logger import get_logger
+from location import get_location_from_query
 
 lgr = get_logger(__name__)
 
@@ -35,6 +36,13 @@ class mobase(crud.database):
 
     def create_id(self):
         return "{}_{}".format(self.name, genid())
+
+    @staticmethod
+    def search_location(query: str) -> dict:
+        try:
+            return get_location_from_query(query)
+        except Exception as e:
+            return {'error': str(e)}
     
     @staticmethod
     def run_in_thread(fn):
