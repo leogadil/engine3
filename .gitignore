@@ -4,3 +4,6 @@ Scripts
 *.pyc
 *.log
 launch.json
+*.db
+framework/config.json
+framework/modules/weather/weather.json
