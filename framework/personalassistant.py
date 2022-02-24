@@ -9,6 +9,11 @@ version = "0.0.1"
     ~~~~~~~~~~~~~~~~~~~~~~~~~
     serves as the main engine of the AI.
     It is responsible for the main loop of the application.
+
+    parameters: 
+        self: the object itself
+        override_command: override default command (REMOVE EVERYTHING AND REPLACE WITH VARIABLE self.override_command)
+        override_intent_model: override default intent model
     
     It is responsible for the following tasks:
         - loading the configuration file 
@@ -22,6 +27,7 @@ import abc
 from time import sleep
 
 import activememory as am
+import location as loc
 import mloader as mload
 from logger import get_logger
 
@@ -45,7 +51,7 @@ class engine:
     
     @abc.abstractmethod
     def prepare(self) -> None:
-        lgr.warning("No External Preparation Steps Found.")
+        lgr.warning("No External Preparation Steps Found On '{}'.".format(self.name))
 
     def initialize(self):
         """
@@ -57,6 +63,9 @@ class engine:
         # load active memory
         self.stm = am.activememory()
         self.stm.init_task()
+
+        # load location manager
+        self.loc = loc.location()
 
         self.running = True
 
@@ -74,7 +83,7 @@ class engine:
     
     def main_thread(self) -> None:
         try:
-            lgr.info(f"{self.name} is ready to serve you.")
+            lgr.info(f"'{self.name}' is ready to serve you.")
             self.module_manager.start()
             while self.running:
                 sleep(.1)
