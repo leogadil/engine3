@@ -209,7 +209,7 @@ class weather(mobase):
 
         try:
             result = self.cursor.execute('''
-                SELECT dt FROM weather ORDER BY dt LIMIT 1
+                SELECT dt FROM weather ORDER BY dt DESC LIMIT 1
             ''').fetchone()
             self.close()
 
@@ -224,6 +224,23 @@ class weather(mobase):
         except sqlite3.OperationalError as e:
             self.lgr.error("Error checking if latest weather is outdated: {}".format(e))
 
+    def get_time_last_weather_update(self) -> int:
+        self.connect()
+
+        try:
+            result = self.cursor.execute('''
+                SELECT dt FROM weather ORDER BY dt DESC LIMIT 1
+            ''').fetchone()
+            self.close()
+
+            latest = result[0]
+            rem = self.get_remaining_time(latest)
+
+            return self.convert_seconds_2_words(rem)
+
+        except sqlite3.OperationalError as e:
+            self.lgr.error("Error getting time last weather update: {}".format(e))
+
     @mobase.run_in_thread
     def get_latest_weather_if_database_not_lastest(self) -> None:
         while self.running:
@@ -231,5 +248,6 @@ class weather(mobase):
                 self.lgr.info("Weather Database is outdated, fetching latest weather")
                 self.get_current_weather_from_api()
                 # self.get_forecast_from_api()
+            # print(self.get_time_last_weather_update())
             sleep(15)
         

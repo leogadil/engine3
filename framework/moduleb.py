@@ -1,17 +1,19 @@
 
 import abc
+import atexit
+import json
 import os
 import threading
-import json
-from idgen import genid
 
 import crud
+from helper import timehelper
+from idgen import genid
+from location import location
 from logger import get_logger
-from location import get_location_from_query
 
 lgr = get_logger(__name__)
 
-class mobase(crud.database):
+class mobase(crud.database, timehelper):
 
     def __init__(self, name, desc, ver) -> None:
         self.name = name.lower()
@@ -24,6 +26,8 @@ class mobase(crud.database):
             os.makedirs(folder)
 
         self.config = json.load(open('framework/config.json'))
+
+        self.loc = location()
 
         super().__init__('modules/{}/database.db'.format(self.name))
 
@@ -40,9 +44,12 @@ class mobase(crud.database):
     @staticmethod
     def search_location(query: str) -> dict:
         try:
-            return get_location_from_query(query)
+            return location.get_location_from_query(query)
         except Exception as e:
             return {'error': str(e)}
+
+    def ttime(self):
+        return timehelper
     
     @staticmethod
     def run_in_thread(fn):

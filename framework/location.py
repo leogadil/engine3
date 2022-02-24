@@ -17,12 +17,8 @@ class location(crud.database):
     def __init__(self) -> None:
         self.db_path = 'retention/location.db'
 
-        folder = 'framework/retention'
-        if not os.path.exists(folder):
-            lgr.warning(f'Creating folder: {folder}')
-            os.makedirs(folder)
-
         super().__init__(self.db_path)
+        self.create_location_memory()
 
     def create_location_memory(self) -> None:
         self.connect()
@@ -43,7 +39,7 @@ class location(crud.database):
                 display_name STRING,
                 class STRING,
                 type STRING,
-                importance INTEGER,
+                importance INTEGER
             )
         '''
 
